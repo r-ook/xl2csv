@@ -23,7 +23,7 @@ Optional arguments:
 
 # This script needs some restructuring to support the additional argparse, hopefully to be done at a later time...
 __author__ = 'Roca Koo'
-__last_updated__ = 'Dec 12, 2019'
+__last_updated__ = 'Jan 10, 2020'
 
 from os import path, mkdir
 import csv
@@ -31,26 +31,10 @@ import sys
 import xlrd
 import argparse
 
-# class XL:
-#     def __init__(self, in_file, sheet=None, out_file=None):
-#         try:
-#             self.wb = xlrd.open_workbook(in_file)
-#         except
-    
-#     def load_sheet(self, sheet=None):
-#         if sheet:
-#             try:    # validate sheet exists
-#                 self.sh = self.wb.sheet_by_name(sheet)
-#             except xlrd.biffh.XLRDError:
-#                 self.close()
-#                 return ValueError('"{}" not found in workbook (case sensitive)'.format(sheet))
-#         else:
-#             self.sh = wb.sheet_by_index(0)
-
-#     def close(self):
-#         self.wb.release_resources()
-
 def r_mkdir(pth):
+    '''
+    Recursive function to create sub-directories if not exist
+    '''
     parent, _ = path.split(pth)
     if not path.exists(parent):
         r_mkdir(parent)
@@ -58,10 +42,23 @@ def r_mkdir(pth):
         mkdir(pth)
     return pth
 
-def export_xl(fl, sheet=None, dir_=None, dir_force=False, use_stdout=False, overwrite=False):
+def export_xl(fl, sheet: str=None, dir_: str=None, dir_force=False, use_stdout=False, overwrite=False):
     '''
     Main function to export the excel sheet as csv
+    Arguments:
+        sheet       [str]   - Name of the sheet, case sensitive.  If not provided, first indexed sheet will be used.
+        dir_        [str]   - Directory name to save the output file.
+                                If not provided, save to current directory
+                                If provided, folder(s) must exist.  If not, dir_force should be used.
+        dir_force   [bool]  - If dir_ is provided, to determine if path.exists will checked.
+        use_stdout  [bool]  - Use stdout for piping instead of physical file.
+        overwrite   [bool]  - By default, the physical file will always be saved as a new one.
+                                If flagged, existing file with the same name will be overwritten.
     '''
+
+    # Currently, to ensure exit code is respected, returning the actual error if occurred to raise at the end of the script.
+    # This might be updated in the future to better respect the syntax.
+
     # validate file exists
     try:
         assert path.exists(fl)
@@ -87,6 +84,7 @@ def export_xl(fl, sheet=None, dir_=None, dir_force=False, use_stdout=False, over
     else:
         sh = wb.sheet_by_index(0)
 
+    # Check if using stdout or spit out physical CSV
     if use_stdout:
         sys.stdout.writelines(
             '\n'.join(','.join(sh.row_values(r)) for r in range(sh.nrows)))
@@ -117,7 +115,7 @@ def get_new_name(f, override=False):
     return new_file
 
 def new_name_generator(f):
-    ''' Generate a new unique file name with (n) '''
+    '''Generate a new unique file name with (n)'''
     i = 1
     while True:
         yield ' ({})'.format(i).join(path.splitext(f))
@@ -150,19 +148,11 @@ Confirmed Supported file format:
     parser.add_argument('-f', '--force', action='store_true', help="Optional flag when directory is supplied.  Create directory(ies) if directory doesn't exist.")
     parser.add_argument('-o', '--overwrite', action='store_true', help="Overwrite csv file if it already exists.  By default, a new unique csv file will be created each time.")
 
+    # If no arguments are provided, default the display help text
     if len(sys.argv) == 1:
-        # show_help()
         sys.argv.append('-h')
-    args = parser.parse_args()
-    # else:
-        # args = sys.argv[1:3]    # get the first two arguments after file name
-        # if args[0].lower() in ('-h', '--help', '/?', '/h', '/help'):
-        #     show_help()
-        # else:
-        #     error = export_xl(*args)
-        #     if error:
-        #         # This is not the ideal way to handle errors but for the purpose of converted to exe it'll do.
-        #         raise error
+
+    args = parser.parse_args()    
     error = export_xl(
         fl=args.filename,
         sheet=args.sheetname,
