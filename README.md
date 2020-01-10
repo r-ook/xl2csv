@@ -1,18 +1,14 @@
-#xl2csv
-
+# xl2csv
 Simple CLI using `xlrd` package to convert Excel Sheets to CSV files
 
-#Purpose:
-
+# Purpose:
 Convert Excel Sheet to CSV
 
-#Confirmed Supported file format: 
-
+# Confirmed Supported file format: 
 `.xlsx`, `.xls`, `.xlsm`
 other `.xl*` formats may be supported but untested at this time
 
-#Usage:
-
+# Usage:
     xlsx2csv [-h] [-s] [-d DIRECTORY] [-f] filename [sheetname]`
 
     Positional arguments:
